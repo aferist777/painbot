@@ -1,0 +1,58 @@
+<div class="win" id="win">
+  <div class="bar">
+    <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+    <span class="t">AsmRepl — C++ / x86-64</span>
+  </div>
+  <div class="body">
+    <div class="tile" style="margin-bottom:20px">
+      <div class="muted mono" style="margin-bottom:14px">main.cpp</div>
+      <div class="mono src" data-i="0" style="font-size:30px;padding:8px 12px;border-radius:8px">int square(int x) {</div>
+      <div class="mono src" data-i="1" style="font-size:30px;padding:8px 12px;border-radius:8px">&nbsp;&nbsp;int res = x * x;</div>
+      <div class="mono src" data-i="2" style="font-size:30px;padding:8px 12px;border-radius:8px">&nbsp;&nbsp;return res;</div>
+      <div class="mono src" data-i="3" style="font-size:30px;padding:8px 12px;border-radius:8px">}</div>
+    </div>
+    <div class="tile">
+      <div class="muted mono" style="margin-bottom:14px">x86-64</div>
+      <div class="mono asm" data-i="0" style="font-size:30px;padding:8px 12px;border-radius:8px">square(int):</div>
+      <div class="mono asm" data-i="1" style="font-size:30px;padding:8px 12px;border-radius:8px">&nbsp;&nbsp;mov eax, edi</div>
+      <div class="mono asm" data-i="2" style="font-size:30px;padding:8px 12px;border-radius:8px">&nbsp;&nbsp;imul eax, edi</div>
+      <div class="mono asm" data-i="3" style="font-size:30px;padding:8px 12px;border-radius:8px">&nbsp;&nbsp;ret</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const SRC = [...document.querySelectorAll(".src")];
+  const ASM = [...document.querySelectorAll(".asm")];
+  // which assembly line belongs to which source line
+  const PAIRS = [[0, 0], [1, 2], [2, 1], [3, 3]];
+  const HL = "rgba(76,141,255,.18)";
+
+  window.prepare = function () {
+    document.getElementById("win").style.opacity = 0;
+  };
+
+  window.render = function (t) {
+    const win = document.getElementById("win");
+    const appear = window.seg(t, 0, 0.45);
+    win.style.opacity = appear;
+    win.style.transform = "translateY(" + (1 - appear) * 24 + "px)";
+
+    SRC.concat(ASM).forEach((el) => {
+      el.style.background = "transparent";
+      el.style.color = "var(--dim)";
+    });
+
+    // the cursor walks the source; the matching instruction lights up with it
+    const step = Math.floor((t - 1.0) / 1.05);
+    if (step >= 0 && step < PAIRS.length) {
+      const [src, asm] = PAIRS[step];
+      const glow = 0.6 + 0.4 * Math.sin((t % 1.05) * Math.PI);
+      [SRC[src], ASM[asm]].forEach((el) => {
+        el.style.background = HL;
+        el.style.color = "var(--ink)";
+        el.style.boxShadow = "0 0 " + (10 * glow) + "px rgba(76,141,255,.35)";
+      });
+    }
+  };
+</script>

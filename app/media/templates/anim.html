@@ -1,0 +1,176 @@
+<!doctype html>
+<meta charset="utf-8">
+<script src="vendor/gsap.min.js"></script>
+<script src="vendor/SplitText.min.js"></script>
+<script src="vendor/rough-notation.iife.js"></script>
+<script src="vendor/mermaid.min.js"></script>
+<script src="motion.js"></script>
+<style>
+  @font-face { font-family: "Display"; src: url("fonts/Unbounded-900.woff2") format("woff2");
+               font-weight: 900; font-display: block; }
+  @font-face { font-family: "Display"; src: url("fonts/Unbounded-700.woff2") format("woff2");
+               font-weight: 700; font-display: block; }
+  @font-face { font-family: "Punch"; src: url("fonts/Oswald-700.woff2") format("woff2");
+               font-weight: 700; font-display: block; }
+
+  :root { --bg:#0d1117; --card:#161b22; --line:#262d36; --ink:#e6edf3;
+          --dim:#8b949e; --accent:#4c8dff; --warn:#f0883e; --ok:#3fb950; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); }
+  #frame {
+    width: __W__px; height: __H__px; overflow: hidden; position: relative;
+    background: var(--bg); color: var(--ink);
+    font: 400 26px/1.45 "Segoe UI", -apple-system, Arial, sans-serif;
+    display: flex; align-items: center; justify-content: center;
+    padding: 60px 60px 300px;
+  }
+  #bgfx { position: absolute; inset: -60px; z-index: 0; opacity: .5;
+          background-image: radial-gradient(rgba(76,141,255,.15) 2px, transparent 2px);
+          background-size: 58px 58px; }
+  #glow { position: absolute; inset: 0; z-index: 0;
+          background: radial-gradient(120% 70% at 50% 14%, rgba(38,60,100,.55) 0%, transparent 62%); }
+  #stage { width: 100%; position: relative; z-index: 2; }
+
+  .display { font-family: "Display", "Segoe UI", Arial; font-weight: 900;
+             letter-spacing: -.03em; line-height: 1.04; }
+  .punch { font-family: "Punch", "Segoe UI", Arial; font-weight: 700;
+           text-transform: uppercase; letter-spacing: .01em; }
+  .hot { color: var(--accent); }
+
+  .win { background: var(--card); border: 1px solid var(--line);
+         border-radius: 20px; overflow: hidden; }
+  .bar { display: flex; align-items: center; gap: 10px; padding: 18px 24px;
+         border-bottom: 1px solid var(--line); background: #11161d; }
+  .dot { width: 14px; height: 14px; border-radius: 50%; background: #30363d; }
+  .bar .t { margin-left: 10px; color: var(--dim); font-size: 22px; }
+  .body { padding: 30px 32px; }
+  h2 { font-size: 40px; margin-bottom: 16px; }
+  h3 { font-size: 24px; color: var(--dim); font-weight: 600; text-transform: uppercase;
+       letter-spacing: .06em; margin-bottom: 18px; }
+  p { margin-bottom: 12px; color: var(--dim); }
+  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+  .tile { background: #11161d; border: 1px solid var(--line);
+          border-radius: 16px; padding: 26px; }
+  .muted { color: var(--dim); font-size: 24px; }
+  .big { font-size: 84px; font-weight: 700; letter-spacing: -.03em;
+         font-variant-numeric: tabular-nums; }
+  .row { display: flex; align-items: center; justify-content: space-between;
+         padding: 22px 0; border-bottom: 1px solid var(--line); font-size: 30px; }
+  .row:last-child { border-bottom: 0; }
+  .pill { display: inline-block; padding: 8px 20px; border-radius: 999px;
+          font-size: 24px; background: #1f2937; color: var(--dim); }
+  .pill.ok { background: rgba(63,185,80,.16); color: var(--ok); }
+  .pill.warn { background: rgba(240,136,62,.16); color: var(--warn); }
+  .pill.accent { background: rgba(76,141,255,.16); color: var(--accent); }
+  .btn { display: inline-block; padding: 14px 26px; border-radius: 12px;
+         background: var(--accent); color: #fff; font-weight: 600; font-size: 26px; }
+  table { width: 100%; border-collapse: collapse; font-size: 26px; }
+  th, td { padding: 16px 12px; text-align: left; border-bottom: 1px solid var(--line); }
+  code, .mono { font-family: "Cascadia Mono", Consolas, monospace; }
+
+  .steps { width: 100%; }
+  .step { display: flex; gap: 22px; align-items: center; padding: 24px 26px;
+          margin-bottom: 16px; border-radius: 18px; font-size: 36px;
+          background: #11161d; border: 1px solid var(--line); color: var(--dim); }
+  .step .n { flex: none; width: 58px; height: 58px; border-radius: 50%;
+             display: flex; align-items: center; justify-content: center;
+             background: #1f2937; color: var(--dim); font-weight: 700; font-size: 30px; }
+  .step.done { opacity: .5; }
+  .step.on { background: rgba(76,141,255,.14); border-color: var(--accent); color: var(--ink); }
+  .step.on .n { background: var(--accent); color: #fff; }
+  .chips { display: flex; flex-wrap: wrap; gap: 14px; padding: 6px 0 0 80px; }
+  .chip { padding: 12px 24px; border-radius: 14px; font-size: 30px;
+          background: rgba(76,141,255,.16); color: var(--ink);
+          border: 1px solid rgba(76,141,255,.45); }
+
+  /* The caption lane is reserved, not negotiated: content is pushed out of it
+     so a tall mockup can never land under the words. */
+  #caption { position: absolute; left: 0; right: 0; z-index: 3;
+             padding: 0 70px; text-align: center; min-height: 200px; }
+  #caption.bottom { bottom: 170px; }
+  #caption.top { top: 140px; }
+  #caption .cw { display: inline-block; margin: 0 9px; font-size: 58px; }
+
+  /* rail + stage: the list shrinks to a progress strip so the step's own
+     picture gets two thirds of the frame */
+  #rail { width: 100%; margin-bottom: 34px; }
+  #rail .step { padding: 14px 20px; margin-bottom: 10px; font-size: 27px;
+                border-radius: 14px; }
+  #rail .step .n { width: 42px; height: 42px; font-size: 23px; }
+  #rail.compact .step { padding: 10px 16px; margin-bottom: 7px; font-size: 23px; }
+  #rail.compact .step .n { width: 34px; height: 34px; font-size: 19px; }
+  #stagebox { width: 100%; }
+
+  .mermaid { width: 100%; }
+  .mermaid svg { display: block; width: 100%; height: auto; }
+  .mermaid .edgeLabel, .mermaid .edgeLabel rect { background: transparent !important;
+    fill: #0d1117 !important; }
+  .mermaid .edgeLabel span { color: #8b949e !important; background: #0d1117 !important; }
+</style>
+<div id="frame">
+  <div id="glow"></div>
+  <div id="bgfx"></div>
+  <div id="stage">__BODY__</div>
+  <div id="caption"></div>
+</div>
+<script>
+  gsap.registerPlugin(SplitText);
+  if (window.mermaid) {
+    mermaid.initialize({
+      startOnLoad: true, theme: "base", securityLevel: "loose",
+      flowchart: { curve: "basis", padding: 16, nodeSpacing: 45, rankSpacing: 55 },
+      themeVariables: {
+        darkMode: true, background: "#0d1117", mainBkg: "#161b22",
+        primaryColor: "#161b22", primaryTextColor: "#e6edf3",
+        primaryBorderColor: "#4c8dff", nodeBorder: "#4c8dff",
+        lineColor: "#8b949e", textColor: "#e6edf3",
+        edgeLabelBackground: "#0d1117", fontSize: "30px",
+        fontFamily: "Segoe UI, Arial, sans-serif"
+      }
+    });
+  }
+
+  /* Word-by-word captions in a lane nothing else may enter. */
+  const CAPTION_LANE = { bottom: 450, top: 430 };
+
+  window.captions = function (words, opts) {
+    const o = opts || {};
+    const host = document.getElementById("caption");
+    if (!words || !words.length) return;
+    const side = o.side === "top" ? "top" : "bottom";
+    host.className = side;
+
+    // reserve the lane before anything is measured or laid out
+    const frame = document.getElementById("frame");
+    const over = document.getElementById("over");
+    const room = CAPTION_LANE[side] + "px";
+    if (side === "bottom") {
+      frame.style.paddingBottom = room;
+      if (over) over.style.paddingBottom = room;
+    } else {
+      frame.style.paddingTop = room;
+      if (over) over.style.paddingTop = room;
+    }
+
+    // punctuation is kept in what the engine speaks — commas and full stops are
+    // where it breathes — and stripped only from what is drawn
+    const clean = (t) => String(t || "").replace(/[.,!?;:«»"'()—–]/g, "").trim();
+    host.innerHTML = words
+      .map((w, i) => '<span class="cw punch" id="cw' + i + '">' + clean(w.word) + "</span>")
+      .join("");
+    words.forEach((w, i) => {
+      const el = document.getElementById("cw" + i);
+      gsap.set(el, { opacity: 0 });
+      MOTION.tl.to(el, { opacity: 1, duration: 0.1 }, w.at);
+      MOTION.tl.to(el, { color: o.color || "#4c8dff", duration: 0.08 }, w.at);
+      MOTION.tl.to(el, { color: "#e6edf3", duration: 0.18 }, w.at + 0.24);
+      if (i > 3) MOTION.tl.to(el, { opacity: 0, duration: 0.15 }, w.at + 1.5);
+    });
+  };
+
+  /* The capture loop seeks; nothing here runs on wall-clock time. */
+  window.seek = function (t) {
+    if (MOTION.tl) MOTION.tl.time(Math.max(t, 0));
+  };
+  window.ready = function () { return !!MOTION.tl; };
+</script>

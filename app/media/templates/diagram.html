@@ -1,0 +1,45 @@
+<!doctype html>
+<meta charset="utf-8">
+<script src="__MERMAID__"></script>
+<style>
+  body { background: #0d1117; margin: 0; }
+  #root { width: __WIDTH__px; padding: 36px 44px; }
+  .mermaid { width: 100%; }
+  .mermaid svg { display: block; width: 100%; height: auto; }
+  /* mermaid paints a solid plate behind edge labels; the card must show through */
+  .mermaid .edgeLabel, .mermaid .edgeLabel p, .mermaid .edgeLabel rect {
+    background: transparent !important;
+    fill: #0d1117 !important;
+  }
+  .mermaid .edgeLabel .edgeLabel, .mermaid .edgeLabel span {
+    color: #8b949e !important;
+    background: #0d1117 !important;
+  }
+</style>
+<div id="root"><pre class="mermaid">__BODY__</pre></div>
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: "base",
+    securityLevel: "loose",
+    flowchart: { curve: "basis", padding: 14, nodeSpacing: 55, rankSpacing: 60 },
+    themeVariables: {
+      darkMode: true,
+      background: "#0d1117",
+      mainBkg: "#161b22",
+      primaryColor: "#161b22",
+      primaryTextColor: "#e6edf3",
+      primaryBorderColor: "#4c8dff",
+      nodeBorder: "#4c8dff",
+      secondaryColor: "#11161d",
+      tertiaryColor: "#11161d",
+      lineColor: "#8b949e",
+      textColor: "#e6edf3",
+      edgeLabelBackground: "#0d1117",
+      clusterBkg: "#11161d",
+      clusterBorder: "#262d36",
+      fontSize: "17px",
+      fontFamily: "Segoe UI, Arial, sans-serif"
+    }
+  });
+</script>

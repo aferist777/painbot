@@ -1,0 +1,44 @@
+<div id="bg" style="position:absolute;inset:0;z-index:0">
+  <img id="img" style="width:100%;height:100%;object-fit:cover;
+       filter:brightness(1.18) contrast(1.04)">
+  <div style="position:absolute;inset:0;background:linear-gradient(180deg,
+       rgba(6,9,13,.84) 0%, rgba(6,9,13,.28) 30%, rgba(6,9,13,0) 52%,
+       rgba(6,9,13,.55) 80%, rgba(6,9,13,.92) 100%)"></div>
+</div>
+
+<div id="over" style="position:absolute;inset:0;z-index:2;padding:150px 76px 300px;
+     display:flex;flex-direction:column">
+  <div id="badge" class="punch" style="display:inline-flex;align-self:flex-start;
+       padding:14px 28px;border-radius:14px;background:rgba(76,141,255,.2);
+       border:1px solid rgba(76,141,255,.5);font-size:28px;letter-spacing:.06em"></div>
+  <div id="title" class="display" style="margin-top:28px;font-size:76px"></div>
+  <div style="flex:1"></div>
+  <div id="sub" class="punch" style="font-size:34px;color:var(--dim)"></div>
+</div>
+
+<script>
+  const DATA = __DATA__;
+
+  window.prepare = function () {
+    document.getElementById("frame").style.padding = "0";
+    document.getElementById("over").id = "over";
+    document.getElementById("stage").style.position = "static";
+    document.getElementById("img").src = DATA.image;
+    document.getElementById("badge").textContent = DATA.badge || "";
+    document.getElementById("title").textContent = DATA.title || "";
+    document.getElementById("sub").textContent = DATA.sub || "";
+
+    const TL = MOTION.init({
+      seed: DATA.seed || 1, words: DATA.beats || [], duration: DATA.duration || 4,
+    });
+
+    // a slow push keeps the still alive for the whole line
+    TL.fromTo("#bg", { scale: 1.0 }, { scale: 1.08, duration: DATA.duration || 4,
+                                       ease: "none" }, 0);
+    MOTION.enter("#badge", 0.15, { anim: "right", dur: 0.45 });
+    MOTION.enter("#title", 0.35, { anim: "up", dur: 0.5 });
+    MOTION.enter("#sub", 0.7, { anim: "up", dur: 0.45 });
+    MOTION.micro("#badge", { every: 3, anim: "pulse" });
+    if (DATA.captions) window.captions(DATA.beats || [], { side: DATA.caption_side });
+  };
+</script>

@@ -1,0 +1,61 @@
+<div id="rail" class="steps"></div>
+<div id="stagebox"></div>
+<div class="chips" id="chips"></div>
+
+<script>
+  const DATA = __DATA__;
+
+  window.prepare = function () {
+    const rail = document.getElementById("rail");
+    const hasStage = !!(DATA.stage_html && DATA.stage_html.length > 20);
+
+    // more than six rows and the strip has to tighten up
+    if (DATA.labels.length > 6) rail.classList.add("compact");
+    // no picture for this step: fall back to the plain full-width list
+    if (!hasStage) rail.classList.remove("compact");
+
+    rail.innerHTML = DATA.labels.map(function (label, i) {
+      const state = i < DATA.active ? "done" : i === DATA.active ? "on" : "";
+      return '<div class="step ' + state + '" id="s' + i + '">' +
+             '<div class="n">' + (i + 1) + "</div><div>" + label + "</div></div>";
+    }).join("");
+    if (hasStage) document.getElementById("stagebox").innerHTML = DATA.stage_html;
+    document.getElementById("chips").innerHTML = (DATA.chips || []).map(function (c, i) {
+      return '<div class="chip punch" id="c' + i + '">' + c.text + "</div>";
+    }).join("");
+
+    const TL = MOTION.init({
+      seed: DATA.seed || 1, words: DATA.beats || [], duration: DATA.duration || 6,
+    });
+    MOTION.frame(null, hasStage ? "high" : null);
+    MOTION.background("#bgfx");
+
+    DATA.labels.forEach(function (_, i) {
+      if (i === DATA.active) return;
+      MOTION.enter("#s" + i, 0.04 + i * 0.06, { anim: "up", dur: 0.35 });
+    });
+    MOTION.enter("#s" + DATA.active, 0.12, { anim: "left", dur: 0.45 });
+    TL.fromTo("#s" + DATA.active,
+      { boxShadow: "0 0 0 rgba(76,141,255,0)" },
+      { boxShadow: "0 0 40px rgba(76,141,255,.30)", duration: 0.5 }, 0.3);
+
+    if (hasStage) {
+      MOTION.enter("#stagebox", 0.45, { anim: "pop", dur: 0.5, jitter: false });
+      const parts = document.querySelectorAll("#stagebox .body > *");
+      parts.forEach(function (el, i) {
+        MOTION.enter(el, 0.7 + i * 0.15, { dur: 0.4 });
+      });
+      MOTION.numbers("#stagebox", 0.9);
+      MOTION.micro("#stagebox .big, #stagebox .pill, #stagebox .row", { every: 2 });
+    } else {
+      MOTION.micro("#s" + DATA.active + " .n", { every: 2 });
+      MOTION.micro("#s" + DATA.active, { every: 4, anim: "lift" });
+    }
+
+    (DATA.chips || []).forEach(function (chip, i) {
+      gsap.set("#c" + i, { opacity: 0 });
+      MOTION.beat("#c" + i, chip.at, { dur: 0.35 });
+    });
+    if (DATA.captions) window.captions(DATA.beats || [], { side: DATA.caption_side });
+  };
+</script>

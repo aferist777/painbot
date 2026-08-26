@@ -1,0 +1,112 @@
+<!doctype html>
+<meta charset="utf-8">
+<script src="vendor/mermaid.min.js"></script>
+<style>
+  :root {
+    --bg: #0d1117; --card: #161b22; --line: #262d36;
+    --ink: #e6edf3; --dim: #8b949e; --accent: #4c8dff;
+    --warn: #f0883e; --ok: #3fb950;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); }
+  #frame {
+    width: __W__px; height: __H__px; overflow: hidden;
+    background: radial-gradient(120% 80% at 50% 12%, #151c26 0%, var(--bg) 70%);
+    color: var(--ink);
+    font: 400 26px/1.45 "Segoe UI", -apple-system, Arial, sans-serif;
+    display: flex; flex-direction: column;
+  }
+  /* top strip stays clear of the platform UI, bottom strip is left for captions */
+  .cap { padding: 160px 76px 0; position: relative; z-index: 2; }
+  /* photo frames: the shot fills the canvas, a scrim keeps the caption legible */
+  .bg { position: absolute; inset: 0; z-index: 0; }
+  .bg img { width: __W__px; height: __H__px; object-fit: cover;
+    filter: brightness(1.22) contrast(1.04) saturate(.95); }
+  .bg::after { content: ""; position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(6,9,13,.86) 0%, rgba(6,9,13,.25) 38%,
+      rgba(6,9,13,.55) 72%, rgba(6,9,13,.92) 100%); }
+  .cap h1 { font-size: 76px; line-height: 1.1; font-weight: 700; letter-spacing: -.02em; }
+  .cap.solo { flex: 1; display: flex; align-items: center; padding-bottom: 320px; }
+  .cap.solo h1 { font-size: 104px; }
+  .stage { flex: 1; display: flex; align-items: center; justify-content: center;
+           padding: 40px 60px 300px; position: relative; z-index: 2; }
+  .stage > * { transform-origin: center center; }
+
+  .win { background: var(--card); border: 1px solid var(--line);
+         border-radius: 20px; overflow: hidden; width: 100%; }
+  .bar { display: flex; align-items: center; gap: 10px; padding: 18px 24px;
+         border-bottom: 1px solid var(--line); background: #11161d; }
+  .dot { width: 14px; height: 14px; border-radius: 50%; background: #30363d; }
+  .bar .t { margin-left: 10px; color: var(--dim); font-size: 22px; }
+  .body { padding: 30px 32px; }
+  h2 { font-size: 38px; margin-bottom: 16px; }
+  h3 { font-size: 24px; color: var(--dim); font-weight: 600; text-transform: uppercase;
+       letter-spacing: .06em; margin-bottom: 14px; }
+  p { margin-bottom: 12px; color: var(--dim); }
+  .row { display: flex; align-items: center; justify-content: space-between;
+         padding: 20px 0; border-bottom: 1px solid var(--line); font-size: 28px; }
+  .row:last-child { border-bottom: 0; }
+  .muted { color: var(--dim); }
+  .big { font-size: 88px; font-weight: 700; letter-spacing: -.03em; }
+  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+  .tile { background: #11161d; border: 1px solid var(--line);
+          border-radius: 16px; padding: 26px; }
+  .pill { display: inline-block; padding: 8px 18px; border-radius: 999px;
+          font-size: 24px; background: #1f2937; color: var(--dim); }
+  .pill.ok { background: rgba(63,185,80,.16); color: var(--ok); }
+  .pill.warn { background: rgba(240,136,62,.16); color: var(--warn); }
+  .pill.accent { background: rgba(76,141,255,.16); color: var(--accent); }
+  .btn { display: inline-block; padding: 14px 26px; border-radius: 12px;
+         background: var(--accent); color: #fff; font-weight: 600; font-size: 26px; }
+  table { width: 100%; border-collapse: collapse; font-size: 26px; }
+  th, td { padding: 16px 12px; text-align: left; border-bottom: 1px solid var(--line); }
+  th { color: var(--dim); font-size: 22px; text-transform: uppercase; }
+  code, .mono { font-family: "Cascadia Mono", Consolas, monospace; }
+  /* numbered step list: the enumeration made visible, drawn in code */
+  .steps { width: 100%; }
+  .step { display: flex; gap: 22px; align-items: center; padding: 24px 26px;
+          margin-bottom: 16px; border-radius: 18px; font-size: 36px;
+          background: #11161d; border: 1px solid var(--line); color: var(--dim); }
+  .step .n { flex: none; width: 58px; height: 58px; border-radius: 50%;
+             display: flex; align-items: center; justify-content: center;
+             background: #1f2937; color: var(--dim); font-weight: 700; font-size: 30px; }
+  .step.done { opacity: .5; }
+  .step.on { background: rgba(76,141,255,.14); border-color: var(--accent);
+             color: var(--ink); }
+  .step.on .n { background: var(--accent); color: #fff; }
+  .mermaid { width: 100%; }
+  .mermaid svg { display: block; width: 100%; height: auto; }
+  .mermaid .edgeLabel, .mermaid .edgeLabel rect { background: transparent !important;
+    fill: #0d1117 !important; }
+  .mermaid .edgeLabel span { color: #8b949e !important; background: #0d1117 !important; }
+</style>
+<div id="frame">
+  __BG__
+  __CAPTION__
+  __STAGE__
+</div>
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({
+      startOnLoad: true, theme: "base", securityLevel: "loose",
+      flowchart: { curve: "basis", padding: 16, nodeSpacing: 45, rankSpacing: 55 },
+      themeVariables: {
+        darkMode: true, background: "#0d1117", mainBkg: "#161b22",
+        primaryColor: "#161b22", primaryTextColor: "#e6edf3",
+        primaryBorderColor: "#4c8dff", nodeBorder: "#4c8dff",
+        lineColor: "#8b949e", textColor: "#e6edf3",
+        edgeLabelBackground: "#0d1117", fontSize: "30px",
+        fontFamily: "Segoe UI, Arial, sans-serif"
+      }
+    });
+  }
+  // Shrink whatever the model produced until it fits the stage box.
+  window.fitStage = function () {
+    var stage = document.querySelector(".stage");
+    if (!stage || !stage.firstElementChild) return;
+    var el = stage.firstElementChild;
+    var avail = stage.clientHeight - 40;
+    var h = el.getBoundingClientRect().height;
+    if (h > avail) { el.style.transform = "scale(" + (avail / h) + ")"; }
+  };
+</script>

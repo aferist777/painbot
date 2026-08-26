@@ -1,0 +1,61 @@
+<pre class="mermaid">flowchart TD
+  A[Celery Beat] --> B[Снапшот RDS]
+  B --> C[Временный инстанс]
+  C --> D[Замер RTO и RPO]
+  D --> E[Отчёт в Slack]
+</pre>
+
+<script>
+  let NODES = [], EDGES = [], LABELS = [];
+
+  window.prepare = function () {
+    const svg = document.querySelector("#stage svg");
+    if (!svg) return;
+
+    // mermaid caps the svg with an inline max-width, so a tall TD graph ends up
+    // tiny in the corner. Scale the wrapper (a div — scaling the svg itself
+    // would fight its own transform attributes) to fill the frame.
+    svg.style.maxWidth = "none";
+    const frame = document.getElementById("frame");
+    const box = svg.getBoundingClientRect();
+    const availW = frame.clientWidth - 140;
+    const availH = frame.clientHeight - 420;
+    const k = Math.min(availW / box.width, availH / box.height);
+    const wrap = document.querySelector(".mermaid");
+    wrap.style.transformOrigin = "center center";
+    wrap.style.transform = "scale(" + k.toFixed(3) + ")";
+    NODES = [...svg.querySelectorAll(".node")];
+    EDGES = [...svg.querySelectorAll(".edgePaths path, path.flowchart-link")];
+    LABELS = [...svg.querySelectorAll(".edgeLabel")];
+
+    NODES.forEach((n) => { n.style.opacity = 0; });
+    LABELS.forEach((l) => { l.style.opacity = 0; });
+    EDGES.forEach((e) => {
+      const len = e.getTotalLength();
+      e.dataset.len = len;
+      e.style.strokeDasharray = len;
+      e.style.strokeDashoffset = len;
+    });
+  };
+
+  window.render = function (t) {
+    const STEP = 0.62;   // one node plus its incoming edge per beat of the voice
+    NODES.forEach((node, i) => {
+      const k = window.seg(t, i * STEP, i * STEP + 0.35);
+      node.style.opacity = k;
+      // NB: no CSS transform here — it overrides the SVG transform attribute
+      // mermaid uses to position nodes, and the whole graph collapses to 0,0.
+      // The landing feel comes from the node border instead.
+      const rect = node.querySelector("rect, polygon, circle, path");
+      if (rect) { rect.style.strokeWidth = (1 + 2 * (1 - k)) + "px"; }
+    });
+    EDGES.forEach((edge, i) => {
+      const len = Number(edge.dataset.len || 0);
+      const k = window.seg(t, i * STEP + 0.3, i * STEP + 0.62);
+      edge.style.strokeDashoffset = len * (1 - k);
+    });
+    LABELS.forEach((label, i) => {
+      label.style.opacity = window.seg(t, i * STEP + 0.5, i * STEP + 0.8);
+    });
+  };
+</script>

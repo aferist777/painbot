@@ -1,0 +1,39 @@
+<div id="host" style="width:100%"></div>
+
+<script>
+  const DATA = __DATA__;
+
+  window.prepare = function () {
+    document.getElementById("host").innerHTML = DATA.html || "";
+    let items = Array.from(document.querySelectorAll("#host .body > *"));
+    if (!items.length) items = Array.from(document.querySelectorAll("#host > *"));
+
+    const TL = MOTION.init({
+      seed: DATA.seed || 1, words: DATA.beats || [], duration: DATA.duration || 6,
+    });
+    MOTION.frame();
+    MOTION.background("#bgfx");
+    MOTION.enter("#host", 0, { anim: "pop", dur: 0.5, jitter: false });
+    items.forEach(function (el, i) {
+      MOTION.enter(el, 0.3 + i * 0.16, { dur: 0.45 });
+    });
+
+    // whatever the model built keeps breathing: numbers and badges take the beat
+    // totals count themselves up; key phrases land on the words that name them
+    MOTION.numbers("#host", 0.7);
+    (DATA.chips || []).forEach(function (chip, i) {
+      const el = document.createElement("div");
+      el.className = "chip punch";
+      el.id = "rc" + i;
+      el.textContent = chip.text;
+      el.style.cssText = "position:absolute;left:70px;bottom:210px;opacity:0";
+      document.getElementById("frame").appendChild(el);
+      MOTION.beat("#rc" + i, chip.at, { dur: 0.35 });
+    });
+    if (DATA.captions) window.captions(DATA.beats || [], { side: DATA.caption_side });
+
+    const lively = document.querySelectorAll("#host .big, #host .pill, #host .n");
+    if (lively.length) MOTION.micro("#host .big, #host .pill, #host .n", { every: 2 });
+    else MOTION.micro("#host .row, #host .tile", { every: 3, anim: "lift" });
+  };
+</script>

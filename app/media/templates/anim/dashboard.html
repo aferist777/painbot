@@ -1,0 +1,68 @@
+<div class="win" id="win">
+  <div class="bar">
+    <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+    <span class="t">SnapDrill — учения по восстановлению</span>
+  </div>
+  <div class="body">
+    <h3 id="cap">Последний прогон</h3>
+    <div class="grid">
+      <div class="tile"><div class="muted">Реальный RTO</div>
+        <div class="big"><span id="rto">0</span> мин</div></div>
+      <div class="tile"><div class="muted">Потеря данных</div>
+        <div class="big"><span id="rpo">0</span> сек</div></div>
+    </div>
+    <div style="height:26px"></div>
+    <div class="row" data-i="0"><span>prod-db-cluster</span><span class="pill" data-p="0">…</span></div>
+    <div class="row" data-i="1"><span>billing-aurora</span><span class="pill" data-p="1">…</span></div>
+    <div class="row" data-i="2"><span>analytics-warehouse</span><span class="pill" data-p="2">…</span></div>
+  </div>
+</div>
+
+<script>
+  const ROWS = [...document.querySelectorAll(".row")];
+  const PILLS = [...document.querySelectorAll(".pill")];
+  const FINAL = [
+    { text: "18 мин", cls: "pill ok" },
+    { text: "12 мин", cls: "pill ok" },
+    { text: "34 мин", cls: "pill warn" },
+  ];
+
+  window.prepare = function () {
+    document.getElementById("win").style.opacity = 0;
+    ROWS.forEach((r) => { r.style.opacity = 0; });
+  };
+
+  window.render = function (t) {
+    const win = document.getElementById("win");
+    const appear = window.seg(t, 0, 0.5);
+    win.style.opacity = appear;
+    win.style.transform = "translateY(" + (1 - appear) * 26 + "px)";
+
+    // the numbers land on the words the voice is saying
+    const rto = window.seg(t, 0.6, 1.9);
+    const rpo = window.seg(t, 1.0, 2.3);
+    document.getElementById("rto").textContent = Math.round(18 * rto);
+    document.getElementById("rpo").textContent = Math.round(45 * rpo);
+
+    ROWS.forEach((row, i) => {
+      const at = 2.2 + i * 0.28;
+      const k = window.seg(t, at, at + 0.45);
+      row.style.opacity = k;
+      row.style.transform = "translateX(" + (1 - k) * 34 + "px)";
+    });
+
+    PILLS.forEach((pill, i) => {
+      const at = 3.4 + i * 0.3;
+      if (t >= at) {
+        pill.className = FINAL[i].cls;
+        pill.textContent = FINAL[i].text;
+        const pop = window.seg(t, at, at + 0.25);
+        pill.style.transform = "scale(" + (0.7 + 0.3 * pop) + ")";
+      } else {
+        pill.className = "pill";
+        pill.textContent = "…";
+        pill.style.transform = "scale(1)";
+      }
+    });
+  };
+</script>

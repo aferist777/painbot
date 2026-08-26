@@ -1,0 +1,48 @@
+<div style="width:100%">
+  <div id="badge" class="punch" style="display:inline-flex;padding:14px 28px;
+       border-radius:14px;background:rgba(76,141,255,.18);
+       border:1px solid rgba(76,141,255,.5);font-size:28px;letter-spacing:.06em;
+       margin-bottom:44px"></div>
+  <div id="text" class="display" style="font-size:104px"></div>
+</div>
+
+<script>
+  const DATA = __DATA__;
+
+  window.prepare = function () {
+    const words = DATA.words || [];
+    document.getElementById("badge").textContent = DATA.badge || "";
+    document.getElementById("text").innerHTML = words
+      .map(function (w, i) {
+        const hot = i === DATA.accent ? " hot" : "";
+        return '<span class="w' + hot + '" id="w' + i + '">' + w + "</span> ";
+      })
+      .join("");
+
+    const TL = MOTION.init({
+      seed: DATA.seed || 1,
+      words: DATA.beats || [],
+      duration: DATA.duration || 5,
+    });
+
+    MOTION.frame();
+    MOTION.background("#bgfx");
+    MOTION.enter("#badge", 0.05, { anim: "right", dur: 0.45 });
+
+    // words land one after another, each with its own drawn variant
+    const nodes = Array.from(document.querySelectorAll(".w"));
+    nodes.forEach(function (node, i) {
+      MOTION.enter(node, 0.3 + i * 0.12, { dur: 0.42 });
+    });
+
+    // the accented word gets a hand-drawn mark once the line has landed
+    const hot = document.getElementById("w" + DATA.accent);
+    if (hot) {
+      MOTION.mark(hot, 0.35 + nodes.length * 0.12, { type: DATA.mark || "underline" });
+    }
+
+    // the micro layer keeps the plate alive while the voice finishes the line
+    MOTION.micro(".w", { every: 2 });
+    if (DATA.captions) window.captions(DATA.beats || [], { side: DATA.caption_side });
+  };
+</script>
